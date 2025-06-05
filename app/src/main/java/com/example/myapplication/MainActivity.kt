@@ -3,6 +3,7 @@ package com.example.myapplication
 import android.media.Image
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import androidx.appcompat.widget.SearchView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -18,6 +19,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var recyclerview: RecyclerView
     private lateinit var adapter: AdapterDog
 
+    private lateinit var searchView: SearchView
+
     private var listaImagenes = mutableListOf<String>()
 
 
@@ -27,6 +30,9 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         recyclerview = findViewById(R.id.recyclerviewlista)
+        searchView = findViewById(R.id.searchviewrecycler)
+
+        searchView.setOnQueryTextListener(this) //implementacion del metodo de arriba
 
         recyclerview.layoutManager = LinearLayoutManager(this)
         adapter = AdapterDog(listaImagenes)
