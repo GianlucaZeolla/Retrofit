@@ -3,6 +3,10 @@ package com.example.myapplication
 import android.media.Image
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.view.View
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
+import android.widget.Spinner
 import androidx.appcompat.widget.SearchView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.ListAdapter
@@ -19,10 +23,12 @@ class MainActivity : AppCompatActivity() {
     private lateinit var recyclerview: RecyclerView
     private lateinit var adapter: AdapterDog
 
-    private lateinit var searchView: SearchView
+
+    private lateinit var spinner: Spinner
 
     private var listaImagenes = mutableListOf<String>()
 
+    private var breedsList = mutableListOf<String>()
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -30,32 +36,58 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         recyclerview = findViewById(R.id.recyclerviewlista)
-        searchView = findViewById(R.id.searchviewrecycler)
 
-        searchView.setOnQueryTextListener(this) //implementacion del metodo de arriba
+        spinner = findViewById(R.id.spinner)
+
 
         recyclerview.layoutManager = LinearLayoutManager(this)
         adapter = AdapterDog(listaImagenes)
         recyclerview.adapter = adapter
 
+
     }
+
     private fun getRetrofit(): Retrofit {
         return Retrofit.Builder()
-            .baseUrl(URL_DOGS)
+            .baseUrl("https://dog.ceo/api/")
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
 
-    private fun searchBy(breed: String) {
+    private fun getListOfBreed(breeds: String) {
+
         CoroutineScope(Dispatchers.IO).launch {
-            val call = getRetrofit().create(APIService::class.java).getListaImagenes("breed/$breed/images")
-            val respuesta: RazasResponse? = call.body()
+            val call = getRetrofit().create(APIService::class.java).getListOfBreed("breed/list/all")
+            val response = call.body()
 
             runOnUiThread {
                 if (call.isSuccessful) {
-                    val imagenes = (respuesta?.imagenes ?: emptyList())
+                    val breedsMap = response?.message
+                    if (breedsMap != null) {
+                        for (breed in breedsMap.keys)
+                            breedsList.add(breed)
+                        setSpinner()
+                    }
+
+                } else {
+
+
+                }
+            }
+        }
+    }
+
+    private fun getImagesBy(breed: String?) {
+        CoroutineScope(Dispatchers.IO).launch {
+            val call =
+                getRetrofit().create(APIService::class.java).getListaImagenes("breed/$breed/images")
+            val response = call.body()
+
+            runOnUiThread {
+                if (call.isSuccessful) {
+                    val images = response?.imagenes ?: emptyList()
                     listaImagenes.clear()
-                    listaImagenes.addAll(imagenes)
+                    listaImagenes.addAll(images)
                     adapter.notifyDataSetChanged()
                 } else {
 
@@ -65,8 +97,30 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-    companion object //notacion que tiene kotlin para que algo sea estatico. Que puede ser accesible desde cualquier clase de mi aplicación, es muy costoso para la memoria, pero es rapido y comodo.
-    const val URL_DOGS = "https://dog.ceo/api/hound"
+    private fun setSpinner() {
+        val spinnerAdapter =
+            ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, breedsList)
+        spinner.adapter = spinnerAdapter
 
+        spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(p0: AdapterView<*>?, p1: View?, p2: Int, p3: Long) {
+                getListOfBreed(listaImagenes[p2])
+            }
 
+            override fun onNothingSelected(p0: AdapterView<*>?) {
+                TODO("Not yet implemented")
+            }
+        }
+    }
 }
+
+
+
+
+
+    private fun getRetrofit(): Retrofit {
+        return Retrofit.Builder()
+            .baseUrl("https://dog.ceo/api/")
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+    }
