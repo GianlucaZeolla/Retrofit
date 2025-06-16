@@ -1,5 +1,6 @@
 package com.example.myapplication
 
+import android.app.ProgressDialog.show
 import android.media.Image
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -44,6 +45,9 @@ class MainActivity : AppCompatActivity() {
         adapter = AdapterDog(listaImagenes)
         recyclerview.adapter = adapter
 
+        getListOfBreed()
+
+
 
     }
 
@@ -54,10 +58,10 @@ class MainActivity : AppCompatActivity() {
             .build()
     }
 
-    private fun getListOfBreed(breeds: String) {
+    private fun getListOfBreed() {
 
         CoroutineScope(Dispatchers.IO).launch {
-            val call = getRetrofit().create(APIService::class.java).getListOfBreed("breed/list/all")
+            val call = getRetrofit().create(APIService::class.java).getListOfBreed("/list/all")
             val response = call.body()
 
             runOnUiThread {
@@ -68,10 +72,6 @@ class MainActivity : AppCompatActivity() {
                             breedsList.add(breed)
                         setSpinner()
                     }
-
-                } else {
-
-
                 }
             }
         }
@@ -80,7 +80,7 @@ class MainActivity : AppCompatActivity() {
     private fun getImagesBy(breed: String?) {
         CoroutineScope(Dispatchers.IO).launch {
             val call =
-                getRetrofit().create(APIService::class.java).getListaImagenes("breed/$breed/images")
+                getRetrofit().create(APIService::class.java).getListaImagenes("/list/all")
             val response = call.body()
 
             runOnUiThread {
@@ -90,7 +90,7 @@ class MainActivity : AppCompatActivity() {
                     listaImagenes.addAll(images)
                     adapter.notifyDataSetChanged()
                 } else {
-
+                    println("Error")
                 }
             }
         }
@@ -98,13 +98,12 @@ class MainActivity : AppCompatActivity() {
 
 
     private fun setSpinner() {
-        val spinnerAdapter =
-            ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, breedsList)
+        val spinnerAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, breedsList)
         spinner.adapter = spinnerAdapter
 
         spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(p0: AdapterView<*>?, p1: View?, p2: Int, p3: Long) {
-                getListOfBreed(listaImagenes[p2])
+                getImagesBy(breedsList[p2])
             }
 
             override fun onNothingSelected(p0: AdapterView<*>?) {
@@ -117,10 +116,3 @@ class MainActivity : AppCompatActivity() {
 
 
 
-
-    private fun getRetrofit(): Retrofit {
-        return Retrofit.Builder()
-            .baseUrl("https://dog.ceo/api/")
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-    }
