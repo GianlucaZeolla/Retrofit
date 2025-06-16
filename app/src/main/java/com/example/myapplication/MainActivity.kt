@@ -59,19 +59,16 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun getListOfBreed() {
-
         CoroutineScope(Dispatchers.IO).launch {
-            val call = getRetrofit().create(APIService::class.java).getListOfBreed("/list/all")
+            val call = getRetrofit().create(APIService::class.java).getListOfBreed()
             val response = call.body()
 
             runOnUiThread {
-                if (call.isSuccessful) {
-                    val breedsMap = response?.message
-                    if (breedsMap != null) {
-                        for (breed in breedsMap.keys)
-                            breedsList.add(breed)
-                        setSpinner()
-                    }
+                if (call.isSuccessful && response != null) {
+                    val breedsMap = response.message
+                    breedsList.clear()
+                    breedsList.addAll(breedsMap.keys)
+                    setSpinner()
                 }
             }
         }
@@ -79,18 +76,15 @@ class MainActivity : AppCompatActivity() {
 
     private fun getImagesBy(breed: String?) {
         CoroutineScope(Dispatchers.IO).launch {
-            val call =
-                getRetrofit().create(APIService::class.java).getListaImagenes("/list/all")
+            val call = getRetrofit().create(APIService::class.java).getListaImagenes(breed ?: "")
+
             val response = call.body()
 
             runOnUiThread {
-                if (call.isSuccessful) {
-                    val images = response?.imagenes ?: emptyList()
+                if (call.isSuccessful && response != null) {
                     listaImagenes.clear()
-                    listaImagenes.addAll(images)
+                    listaImagenes.addAll(response.imagenes)
                     adapter.notifyDataSetChanged()
-                } else {
-                    println("Error")
                 }
             }
         }
