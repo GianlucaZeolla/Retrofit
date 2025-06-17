@@ -47,16 +47,9 @@ class MainActivity : AppCompatActivity() {
 
         getListOfBreed()
 
-
-
     }
 
-    private fun getRetrofit(): Retrofit {
-        return Retrofit.Builder()
-            .baseUrl("https://dog.ceo/api/")
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-    }
+
 
     private fun getListOfBreed() {
         CoroutineScope(Dispatchers.IO).launch {
@@ -73,6 +66,22 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
+
+    private fun setSpinner() {
+        val spinnerAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, breedsList)
+        spinner.adapter = spinnerAdapter
+
+        spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(p0: AdapterView<*>?, p1: View?, p2: Int, p3: Long) {
+                getImagesBy(breedsList[p2])
+            }
+
+            override fun onNothingSelected(p0: AdapterView<*>?) {
+                TODO("Not yet implemented")
+            }
+        }
+    }
+
 
     private fun getImagesBy(breed: String?) {
         CoroutineScope(Dispatchers.IO).launch {
@@ -91,19 +100,11 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-    private fun setSpinner() {
-        val spinnerAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, breedsList)
-        spinner.adapter = spinnerAdapter
-
-        spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(p0: AdapterView<*>?, p1: View?, p2: Int, p3: Long) {
-                getImagesBy(breedsList[p2])
-            }
-
-            override fun onNothingSelected(p0: AdapterView<*>?) {
-                TODO("Not yet implemented")
-            }
-        }
+    private fun getRetrofit(): Retrofit {
+        return Retrofit.Builder()
+            .baseUrl("https://dog.ceo/api/")
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
     }
 }
 
